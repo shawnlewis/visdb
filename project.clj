@@ -8,8 +8,7 @@
             :cljsbuild {:source-path "src" 
                         :compiler
                           {:output-dir "resources/public/cljs/"
-                           :output-to "resources/public/cljs/core.js"
-                           :optimizations :simple
+                           :output-to "resources/public/cljs/all.js"
                            :pretty-print true}} 
             :plugins [[lein-cljsbuild "0.2.1"]]
             :main visdb.server)
