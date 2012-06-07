@@ -5,4 +5,4 @@ pom.xml
 /classes/
 .lein-deps-sum
 .lein-plugins/
-resource/public/cljs/
+resources/public/cljs/
