@@ -6,4 +6,6 @@
 
 (defpage "/welcome" []
          (common/layout
-           [:p "Welcome to visdb"]))
+           [:p "Welcome to visdb"]
+           [:div#elements]
+           ))
