@@ -21,23 +21,25 @@
 
 ;;; elements panel
 
-(def $elements ($ :#elements))
+(def $control-templates ($ :#control-templates))
 
-(def textbox-element [:input.draggable {:type "text"}])
+(def textbox-control
+    {:template-html [:input.draggable {:type "text"}]})
 
-(def radio-element [:input.draggable {:type "radio"}])
+(def radio-control
+    {:template-html [:input.draggable {:type "radio"}]})
 
-(def elements [textbox-element radio-element])
+(def controls [textbox-control radio-control])
 
-(doseq [e elements]
-    (append $elements (crate/html e)))
+(doseq [c controls]
+    (append $control-templates (crate/html (:template-html c))))
 
 
 ;;; enable drag and drop
 
 (defn drag-drop [drag-els drop-el]
     (let [drop (goog.fx.DragDrop. drop-el)
-          drags (map #(goog.fx.DragDrop. %) drag-els)]
+          drags (map #(goog.fx.DragDrop. % "hello") drag-els)]
         (do 
             (doseq [d drags] (.addTarget d drop))
             (doseq [d drags] (.init d))
@@ -46,10 +48,12 @@
 
 (def drags (drag-drop ($ :.draggable) "drop-area"))
 
-(jslog drags)
+(defn on-drop [event]
+    (let [drag-el event.dragSourceItem.data]
+        (jslog drag-el)))
 
-(events/listen (first drags) "dragstart" #(jslog "start1"))
-(events/listen (second drags) "dragstart" #(jslog "start2"))
+(events/listen (first drags) "dragstart" on-drop)
+(events/listen (second drags) "dragstart" on-drop)
 
 ; Elements pane:
 ;    - text box, check box, that can be dragged to page

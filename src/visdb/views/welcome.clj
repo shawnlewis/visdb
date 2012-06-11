@@ -7,6 +7,6 @@
 (defpage "/welcome" []
          (common/layout
            [:p "Welcome to visdb"]
-           [:div#elements]
+           [:div#control-templates]
            [:div#drop-area]
            ))
