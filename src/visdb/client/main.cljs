@@ -5,6 +5,7 @@
               [clojure.browser.repl :as repl]
               [goog.fx.DragDrop :as DragDrop]
               [goog.events :as events]
+              [goog.style :as style]
               )
     )
 
@@ -22,6 +23,7 @@
 ;;; elements panel
 
 (def $control-templates ($ :#control-templates))
+(def $drop-area ($ :#drop-area))
 
 (def textbox-control
     {:template-html [:input.draggable {:type "text"}]})
@@ -41,10 +43,6 @@
 
 ;;; enable drag and drop
 
-; goal
-;   each control-template has a draggable control created
-;   on drop a new object is created from the template
-
 (defn make-drag-drop
     ([el]
       (goog.fx.DragDrop. el))
@@ -55,20 +53,41 @@
     (do
         (doseq [d drags] (.addTarget d drop))
         (doseq [d drags] (.init d))
-        drags
         ))
 
-(def drags
-    (drag-drop
-        (map #(make-drag-drop (:template-el %) %) controls)
-        (make-drag-drop "drop-area")))
+(def drags (map #(make-drag-drop (:template-el %) %) controls))
+(def drop (make-drag-drop "drop-area"))
+(drag-drop drags drop)
+
+(defn make-coord [x y]
+    (goog.math.Coordinate. x y))
+
+(defn coord-difference [a b]
+    (goog.math.Coordinate/difference a b))
+
+(defn set-css [$elem css-map]
+  (doseq [[k v] css-map]
+    (.css $elem k v)))
 
 (defn on-drop [event]
-    (let [drag-el event.dragSourceItem.data]
-        (jslog drag-el)))
+    (let [control event.dragSourceItem.data
+          drop-el event.dropTargetElement
+          drop-client-coord (make-coord event.clientX event.clientY)
+          rel-coord (coord-difference
+                     drop-client-coord
+                     (style/getClientPosition drop-el))
+          new-el (crate/html (:template-html control))
+          ]
+        (do
+            (jslog rel-coord)
+            (set-css ($ new-el)
+                     {"position" "absolute"
+                      "left" (str rel-coord.x "px")
+                      "top" (str rel-coord.y "px")})
+            (append $drop-area new-el))))
 
-(events/listen (first drags) "dragstart" on-drop)
-(events/listen (second drags) "dragstart" on-drop)
+(events/listen drop "drop" on-drop)
+(events/listen drop "drop" on-drop)
 
 ; Elements pane:
 ;    - text box, check box, that can be dragged to page
