@@ -6,3 +6,4 @@ pom.xml
 .lein-deps-sum
 .lein-plugins/
 resources/public/cljs/
+.lein-cljsbuild-repl/
