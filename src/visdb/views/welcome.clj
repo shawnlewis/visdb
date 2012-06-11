@@ -8,4 +8,5 @@
          (common/layout
            [:p "Welcome to visdb"]
            [:div#elements]
+           [:div#drop-area]
            ))
