@@ -29,24 +29,39 @@
 (def radio-control
     {:template-html [:input.draggable {:type "radio"}]})
 
-(def controls [textbox-control radio-control])
+(def controls
+    (let [controls [textbox-control radio-control]]
+        (for [c controls]
+            (assoc c
+                   :template-el
+                   (crate/html (:template-html c))))))
 
 (doseq [c controls]
-    (append $control-templates (crate/html (:template-html c))))
-
+    (append $control-templates (:template-el c)))
 
 ;;; enable drag and drop
 
-(defn drag-drop [drag-els drop-el]
-    (let [drop (goog.fx.DragDrop. drop-el)
-          drags (map #(goog.fx.DragDrop. % "hello") drag-els)]
-        (do 
-            (doseq [d drags] (.addTarget d drop))
-            (doseq [d drags] (.init d))
-            drags
-            )))
+; goal
+;   each control-template has a draggable control created
+;   on drop a new object is created from the template
 
-(def drags (drag-drop ($ :.draggable) "drop-area"))
+(defn make-drag-drop
+    ([el]
+      (goog.fx.DragDrop. el))
+    ([el data]
+      (goog.fx.DragDrop. el data)))
+
+(defn drag-drop [drags drop]
+    (do
+        (doseq [d drags] (.addTarget d drop))
+        (doseq [d drags] (.init d))
+        drags
+        ))
+
+(def drags
+    (drag-drop
+        (map #(make-drag-drop (:template-el %) %) controls)
+        (make-drag-drop "drop-area")))
 
 (defn on-drop [event]
     (let [drag-el event.dragSourceItem.data]
