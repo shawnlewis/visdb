@@ -1,0 +1,13 @@
+#control-templates {
+    padding: 20px;
+}
+
+#control-templates * {
+    display: block;
+}
+
+#drop-area {
+    height:1000px;
+    width: 100%;
+    position: relative;
+}
