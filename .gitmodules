@@ -1,0 +1,3 @@
+[submodule "subs/jayq"]
+	path = subs/jayq
+	url = https://github.com/ibdknox/jayq.git
