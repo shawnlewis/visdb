@@ -31,8 +31,11 @@
 (def radio-control
     {:template-html [:input.draggable {:type "radio"}]})
 
+(def image-control
+    {:template-html [:img.draggable {:src "/img/goog-icon.png"}]})
+
 (def controls
-    (let [controls [textbox-control radio-control]]
+    (let [controls [textbox-control radio-control image-control]]
         (for [c controls]
             (assoc c
                    :template-el
@@ -73,20 +76,23 @@
     (let [control event.dragSourceItem.data
           drop-el event.dropTargetElement
           drop-client-coord (make-coord event.clientX event.clientY)
+          mouse-offset (coord-difference
+                        event.dragSourceItem.startPosition_
+                        (style/getClientPosition event.dragSourceItem.element))
           rel-coord (coord-difference
-                     drop-client-coord
-                     (style/getClientPosition drop-el))
+                        (coord-difference
+                             drop-client-coord
+                             (style/getClientPosition drop-el))
+                        mouse-offset)
           new-el (crate/html (:template-html control))
           ]
         (do
-            (jslog rel-coord)
             (set-css ($ new-el)
                      {"position" "absolute"
                       "left" (str rel-coord.x "px")
                       "top" (str rel-coord.y "px")})
             (append $drop-area new-el))))
 
-(events/listen drop "drop" on-drop)
 (events/listen drop "drop" on-drop)
 
 ; Elements pane:
