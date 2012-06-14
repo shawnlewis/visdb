@@ -19,7 +19,7 @@ itself, which would probably break another package manager.
 
 ### Checkout this project
 
-git clone https://github.com/shawnlewis/visdb.git
+    git clone https://github.com/shawnlewis/visdb.git
 
 
 ### Setup git submodules
@@ -32,8 +32,8 @@ leiningen will insert into the classpath in front of everything else.
 These commands will update all git submodules in the repository (currently
 only jayq).
 
-git submodule init
-git submodule update
+    git submodule init
+    git submodule update
 
 
 ### Setup the project's dependencies
