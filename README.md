@@ -26,7 +26,7 @@ itself, which would probably break another package manager.
 
 I wanted to use a newer version of jayq then is available via lein. I
 decided the best way to do this is to checkout the dependency (in this case
-jayq) as a git submodule, and then to symlink their from checkouts/, which
+jayq) as a git submodule, and then to symlink there from checkouts/, which
 leiningen will insert into the classpath in front of everything else.
 
 These commands will update all git submodules in the repository (currently
@@ -107,3 +107,9 @@ Then navigate to http://localhost:8080/welcome. Then run
 in the repl. You should get a popup in your browser. This works because of line
 12 in visdb/client/main.cljs which connects to the repl when the page is
 loaded.
+
+I haven't figured out a good way to get both a clojure repl and a
+brower-connected clojurescript repl running within vi yet. Looks like the
+clojure world at large hasn't really resolved that yet either. There is a way
+to do it within emacs but you don't get all the functionality that you should,
+so this is currently an unsolved problem.
