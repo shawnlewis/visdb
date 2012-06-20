@@ -7,6 +7,12 @@
 (defpage "/welcome" []
          (common/layout
            [:p "Welcome to visdb"]
-           [:div#control-templates]
-           [:div#drop-area]
+           [:div.half
+             [:div#control-templates]]
+           [:div.half
+             [:div#record-list-pane
+              [:button#add-record "Add Record"]
+              [:ul#record-list]]]
+           [:div.whole
+             [:div#record]]
            ))

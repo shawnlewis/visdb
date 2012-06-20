@@ -1,13 +1,27 @@
+.half {
+    width: 50%;
+    float: left;
+}
+
+.whole {
+    clear: both;
+}
+
 #control-templates {
     padding: 20px;
+    border: 1px solid #888;
+}
+
+#record-list-pane {
+    border: 1px solid #888;
 }
 
 #control-templates * {
     display: block;
 }
 
-#drop-area {
-    height:1000px;
-    width: 100%;
+#record {
+    height:500px;
     position: relative;
+    border: 1px solid #888;
 }

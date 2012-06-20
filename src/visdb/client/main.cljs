@@ -1,7 +1,7 @@
 (ns visdb.client.main
-    (:use [jayq.core :only [$ append delegate data]]
-          [jayq.util :only [clj->js]])
-    (:require [crate.core :as crate]
+    (:use [jayq.util :only [clj->js]])
+    (:require [jayq.core :as jayq]
+              [crate.core :as crate]
               [clojure.browser.repl :as repl]
               [goog.fx.DragDrop :as DragDrop]
               [goog.events :as events]
@@ -22,8 +22,8 @@
 
 ;;; elements panel
 
-(def $control-templates ($ :#control-templates))
-(def $drop-area ($ :#drop-area))
+(def $control-templates (jayq/$ :#control-templates))
+(def $record (jayq/$ :#record))
 
 (def textbox-control
     {:template-html [:input.draggable {:type "text"}]})
@@ -42,9 +42,43 @@
                    (crate/html (:template-html c))))))
 
 (doseq [c controls]
-    (append $control-templates (:template-el c)))
+    (jayq/append $control-templates (:template-el c)))
 
 ;;; enable drag and drop
+
+; more expressive:
+; english:
+;   - each control template is represented as an element in #control-templates
+;   - each control template's element can be dragged and dropped on #record
+;   - when dropped a control is made at drop location from the template
+;   - each control can be moved within the drop area, but cannot move outside
+;     of it
+; (doseq [c controls]
+;   (on-drop (enable-drag-drop (:template-el c) (jayq/$ :#record))
+;          (fn [drop-event]
+;                (to-offset
+;                    ; need to append into element as well
+;                    (jayq/$ (crate/html (:template-html c)))
+;                    (:offset drop-event)))))
+
+(def records (atom []))
+
+(defn set-records [val]
+    (swap! records (fn [] val)))
+
+(defn add-record []
+    (set-records (conj @records (str "record" (count @records)))))
+
+(defn render []
+    (let [pane (jayq/$ "#record-list-pane")]
+        (jayq/empty pane)
+        (doseq [r @records]
+            (jayq/append pane (jayq/$ (str "<li>" r "</li>"))))))
+
+(add-record)
+(add-record)
+
+(render)
 
 (defn make-drag-drop
     ([el]
@@ -59,7 +93,7 @@
         ))
 
 (def drags (map #(make-drag-drop (:template-el %) %) controls))
-(def drop (make-drag-drop "drop-area"))
+(def drop (make-drag-drop "record"))
 (drag-drop drags drop)
 
 (defn make-coord [x y]
@@ -87,11 +121,11 @@
           new-el (crate/html (:template-html control))
           ]
         (do
-            (set-css ($ new-el)
+            (set-css (jayq/$ new-el)
                      {"position" "absolute"
                       "left" (str rel-coord.x "px")
                       "top" (str rel-coord.y "px")})
-            (append $drop-area new-el))))
+            (jayq/append $record new-el))))
 
 (events/listen drop "drop" on-drop)
 
