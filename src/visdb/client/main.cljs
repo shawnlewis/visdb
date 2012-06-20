@@ -19,6 +19,8 @@
 (defn jslog [obj]
     (.log js/console (clj->js obj)))
 
+(defn indexed [seq]
+    (map-indexed vector seq)) 
 
 ;;; elements panel
 
@@ -47,23 +49,42 @@
 ;;; enable drag and drop
 
 (def records (atom []))
+(def cur-record (atom nil))
 
-(defn set-records [val]
-    (swap! records (fn [] val)))
+(defn set-atom [atom val]
+    (swap! atom (fn [] val)))
 
 (defn add-record []
-    (set-records (conj @records (str "record" (count @records)))))
+    (let [record {}]
+        (set-atom cur-record record)
+        (set-atom records (conj @records record))))
 
 (defn render []
-    (let [pane (jayq/$ "#record-list-pane")]
-        (jayq/empty pane)
-        (doseq [r @records]
-            (jayq/append pane (jayq/$ (str "<li>" r "</li>"))))))
+    (let [record-list (jayq/$ "#record-list")]
+        (jayq/empty record-list)
+        (doseq [[i r] (indexed @records)]
+            (jayq/append record-list
+                (-> (jayq/$ "<li>")
+                    (jayq/text (str "record" i))
+                    (jayq/data "record" r))))))
 
 (add-record)
 (add-record)
 
 (render)
+
+(jayq/bind (jayq/$ "#add-record") :click
+    #(do (add-record) (render)))
+
+(jayq/on
+    (jayq/$ "#record-list-pane")
+    :click
+    nil
+    #(set-atom cur-record
+        (-> %
+            .-target
+            jayq/$
+            (jayq/data "record"))))
 
 (defn make-drag-drop
     ([el]
