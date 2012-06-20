@@ -46,21 +46,6 @@
 
 ;;; enable drag and drop
 
-; more expressive:
-; english:
-;   - each control template is represented as an element in #control-templates
-;   - each control template's element can be dragged and dropped on #record
-;   - when dropped a control is made at drop location from the template
-;   - each control can be moved within the drop area, but cannot move outside
-;     of it
-; (doseq [c controls]
-;   (on-drop (enable-drag-drop (:template-el c) (jayq/$ :#record))
-;          (fn [drop-event]
-;                (to-offset
-;                    ; need to append into element as well
-;                    (jayq/$ (crate/html (:template-html c)))
-;                    (:offset drop-event)))))
-
 (def records (atom []))
 
 (defn set-records [val]
