@@ -55,9 +55,15 @@
     (swap! atom (fn [] val)))
 
 (defn add-record []
-    (let [record {}]
+    (let [record []]
         (set-atom cur-record record)
         (set-atom records (conj @records record))))
+
+(defn set-cur-record! [record]
+    (set-atom cur-record record))
+
+(defn add-control [record control coord]
+    (conj record [control coord]))
 
 (defn render []
     (let [record-list (jayq/$ "#record-list")]
@@ -66,7 +72,14 @@
             (jayq/append record-list
                 (-> (jayq/$ "<li>")
                     (jayq/text (str "record" i))
-                    (jayq/data "record" r))))))
+                    (jayq/data "record" r))))
+        (doseq [[control coord] @cur-record]
+            (let [new-el (crate/html (:template-html control))]
+                (set-css (jayq/$ new-el)
+                    {"position" "absolute"
+                     "left" (str coord.x "px")
+                     "top" (str coord.y "px")})
+                (jayq/append $record new-el)))))
 
 (add-record)
 (add-record)
@@ -124,14 +137,10 @@
                              drop-client-coord
                              (style/getClientPosition drop-el))
                         mouse-offset)
-          new-el (crate/html (:template-html control))
           ]
         (do
-            (set-css (jayq/$ new-el)
-                     {"position" "absolute"
-                      "left" (str rel-coord.x "px")
-                      "top" (str rel-coord.y "px")})
-            (jayq/append $record new-el))))
+            (set-cur-record! (add-control @cur-record control rel-coord))
+            (render))))
 
 (events/listen drop "drop" on-drop)
 
