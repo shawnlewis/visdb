@@ -38,6 +38,6 @@
 (defn get-records [database relname]
     (get-in database [:relations relname :records]))
 
-(! db add-relation "field-template" :control-type :position)
+(! db add-relation "field-template" :control-type :position :kind-id)
 (! db add-relation "kind" :name)
 (! db add-relation "card" :kind-id)

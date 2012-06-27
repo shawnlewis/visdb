@@ -59,9 +59,10 @@
                     (jayq/data "id" (:id kind)))))
 
         (jayq/empty $record)
-        (doseq [{control-type :control-type position :position}
-                (model/get-records db "field-template")]
-            (let [control (controls control-type)
+        (doseq [ft (filter #(== (:kind-id %) (:current-kind @*user-state*))
+                    (model/get-records db "field-template"))]
+            (let [position (:position ft)
+                  control (controls (:control-type ft))
                   new-el (crate/html (:template-html control))]
                 (set-css (jayq/$ new-el)
                     {"position" "absolute"
@@ -160,6 +161,7 @@
                         mouse-offset)
           ]
         (model/! model/db model/insert "field-template"
-             {:control-type control-type :position rel-coord})))
+             {:control-type control-type :position rel-coord
+              :kind-id (:current-kind @*user-state*)})))
 
 (events/listen drop "drop" on-drop)
