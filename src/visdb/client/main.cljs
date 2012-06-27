@@ -1,24 +1,16 @@
 (ns visdb.client.main
-    (:use [jayq.util :only [clj->js]])
+    (:use [visdb.client.util :only [jslog]])
     (:require [visdb.client.model :as model]
               [jayq.core :as jayq]
               [crate.core :as crate]
               [clojure.browser.repl :as repl]
               [goog.fx.DragDrop :as DragDrop]
               [goog.events :as events]
-              [goog.style :as style]
-              )
-    )
+              [goog.style :as style]))
 
 (repl/connect "http://localhost:9000/repl")
 
 ;;; utilities
-
-(defn log [obj]
-    (.log js/console (pr-str obj)))
-
-(defn jslog [obj]
-    (.log js/console (clj->js obj)))
 
 (defn indexed [seq]
     (map-indexed vector seq)) 
@@ -49,13 +41,22 @@
 (def records (atom []))
 
 (defn render [db]
-    (let [record-list (jayq/$ "#record-list")]
+    (let [record-list (jayq/$ "#record-list")
+          kind-list (jayq/$ "#kind-list")]
         (jayq/empty record-list)
         (doseq [[i _] (indexed (model/get-records db "card"))]
             (jayq/append record-list
                 (-> (jayq/$ "<li>")
                     (jayq/text (str "record" i))
                     (jayq/data "record" i))))
+
+        (jayq/empty kind-list)
+        (doseq [[i kind] (indexed (model/get-records db "kind"))]
+            (jayq/append kind-list
+                (-> (jayq/$ "<li>")
+                    (jayq/text (str (:name kind)))
+                    (jayq/data "id" (:id kind)))))
+
         (jayq/empty $record)
         (doseq [{control-type :control-type position :position}
                 (model/get-records db "field-template")]
@@ -67,15 +68,28 @@
                      "top" (str position.y "px")})
                 (jayq/append $record new-el)))))
 
+(def *user-state* (atom {}))
+(defn set-user-state! [k v]
+    (reset! *user-state* (assoc @*user-state* k v)))
+
+(defn add-kind [name]
+    (let [kind-id (model/! model/db model/insert "kind" {:name name})]
+        (set-user-state! :current-kind kind-id)))
+
 (defn add-record []
-    (model/! model/db model/insert "card" {}))
+    (model/! model/db model/insert "card"
+     {:kind-id (:current-kind @*user-state*)}))
 
 (model/on-change model/db render)
+
+(add-kind "Blank")
 
 (add-record)
 (add-record)
 
 (jayq/bind (jayq/$ "#add-record") :click add-record)
+(jayq/bind (jayq/$ "#add-kind") :click
+    #(add-kind (jayq/val (jayq/$ "#kind-name"))))
 
 ;(jayq/on
 ;    (jayq/$ "#record-list-pane")

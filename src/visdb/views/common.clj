@@ -6,7 +6,7 @@
             (html5
               [:head
                [:title "visdb"]
-               (include-css "/css/reset.css")
+               ;(include-css "/css/reset.css")
                (include-css "/css/default.css")
                (include-js "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js")]
               [:body

@@ -1,4 +1,5 @@
-(ns visdb.client.model)
+(ns visdb.client.model
+    (:use [visdb.client.util :only [jslog]]))
 
 (defn create-database [] {:id 0 :relations {}})
 
@@ -12,9 +13,10 @@
     (let [new-id (inc (database :id))
           with-id (assoc record :id new-id)
           records (get-in database [:relations relname :records])
-          new-records (conj records with-id)]
-    (assoc (assoc-in database [:relations relname :records] new-records)
-           :id new-id)))
+          new-records (conj records with-id)
+          new-database (assoc-in database [:relations relname :records]
+                                 new-records)]
+        [(assoc new-database :id new-id) new-id]))
 
 (defn set-atom! [atom val]
     (swap! atom (fn [] val)))
@@ -22,7 +24,12 @@
 (def db (atom (create-database)))
 
 (defn ! [db-atom fn & args]
-    (set-atom! db-atom (apply fn @db-atom args)))
+    (let [result (apply fn @db-atom args)
+          [new-db return] (if (vector? result)
+                              [(first result) (second result)]
+                              [result nil])]
+        (set-atom! db-atom new-db)
+        return))
 
 (defn on-change [database callback]
     (let [watch-fn (fn [key ref old new] (callback new))]
@@ -32,4 +39,5 @@
     (get-in database [:relations relname :records]))
 
 (! db add-relation "field-template" :control-type :position)
-(! db add-relation "card")
+(! db add-relation "kind" :name)
+(! db add-relation "card" :kind-id)

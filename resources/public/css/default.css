@@ -1,5 +1,5 @@
-.half {
-    width: 50%;
+.third {
+    width: 33.3%;
     float: left;
 }
 
@@ -9,6 +9,10 @@
 
 #control-templates {
     padding: 20px;
+    border: 1px solid #888;
+}
+
+#kind-list-pane {
     border: 1px solid #888;
 }
 
