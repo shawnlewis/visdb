@@ -24,4 +24,12 @@
 (defn ! [db-atom fn & args]
     (set-atom! db-atom (apply fn @db-atom args)))
 
+(defn on-change [database callback]
+    (let [watch-fn (fn [key ref old new] (callback new))]
+        (add-watch database :watch watch-fn)))
+
+(defn get-records [database relname]
+    (get-in database [:relations relname :records]))
+
 (! db add-relation "field-template" :control-type :position)
+(! db add-relation "card")

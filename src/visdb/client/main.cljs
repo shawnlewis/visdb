@@ -48,17 +48,17 @@
 
 (def records (atom []))
 
-(defn render []
+(defn render [db]
     (let [record-list (jayq/$ "#record-list")]
         (jayq/empty record-list)
-        (doseq [[i _] (indexed @records)]
+        (doseq [[i _] (indexed (model/get-records db "card"))]
             (jayq/append record-list
                 (-> (jayq/$ "<li>")
                     (jayq/text (str "record" i))
                     (jayq/data "record" i))))
         (jayq/empty $record)
         (doseq [{control-type :control-type position :position}
-                (get-in @model/db [:relations "field-template" :records])]
+                (model/get-records db "field-template")]
             (let [control (controls control-type)
                   new-el (crate/html (:template-html control))]
                 (set-css (jayq/$ new-el)
@@ -67,14 +67,16 @@
                      "top" (str position.y "px")})
                 (jayq/append $record new-el)))))
 
-;(add-record)
-;(add-record)
+(defn add-record []
+    (model/! model/db model/insert "card" {}))
 
-;(render)
+(model/on-change model/db render)
 
-;(jayq/bind (jayq/$ "#add-record") :click
-;    #(do (add-record) (render)))
-;
+(add-record)
+(add-record)
+
+(jayq/bind (jayq/$ "#add-record") :click add-record)
+
 ;(jayq/on
 ;    (jayq/$ "#record-list-pane")
 ;    :click
@@ -129,9 +131,7 @@
                              (style/getClientPosition drop-el))
                         mouse-offset)
           ]
-        (do
-            (model/! model/db model/insert "field-template"
-                 {:control-type control-type :position rel-coord})
-            (render))))
+        (model/! model/db model/insert "field-template"
+             {:control-type control-type :position rel-coord})))
 
 (events/listen drop "drop" on-drop)
