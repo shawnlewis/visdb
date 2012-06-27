@@ -44,14 +44,15 @@
     (let [record-list (jayq/$ "#record-list")
           kind-list (jayq/$ "#kind-list")]
         (jayq/empty record-list)
-        (doseq [[i _] (indexed (model/get-records db "card"))]
+        (doseq [card (filter #(== (:kind-id %) (:current-kind @*user-state*))
+                             (model/get-records db "card"))]
             (jayq/append record-list
                 (-> (jayq/$ "<li>")
-                    (jayq/text (str "record" i))
-                    (jayq/data "record" i))))
+                    (jayq/text (str "record " (:id card)))
+                    (jayq/data "record" (:id card)))))
 
         (jayq/empty kind-list)
-        (doseq [[i kind] (indexed (model/get-records db "kind"))]
+        (doseq [kind (model/get-records db "kind")]
             (jayq/append kind-list
                 (-> (jayq/$ "<li>")
                     (jayq/text (str (:name kind)))
@@ -74,7 +75,8 @@
 
 (defn add-kind [name]
     (let [kind-id (model/! model/db model/insert "kind" {:name name})]
-        (set-user-state! :current-kind kind-id)))
+        (set-user-state! :current-kind kind-id)
+        (render @model/db)))
 
 (defn add-record []
     (model/! model/db model/insert "card"
@@ -90,6 +92,18 @@
 (jayq/bind (jayq/$ "#add-record") :click add-record)
 (jayq/bind (jayq/$ "#add-kind") :click
     #(add-kind (jayq/val (jayq/$ "#kind-name"))))
+
+(jayq/on
+    (jayq/$ "#kind-list-pane")
+    :click
+    "li"
+    (fn [event]
+        (do
+            (set-user-state! :current-kind
+                (-> event.target
+                    jayq/$
+                    (jayq/data "id")))
+            (render @model/db))))
 
 ;(jayq/on
 ;    (jayq/$ "#record-list-pane")
