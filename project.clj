@@ -4,7 +4,8 @@
                            [noir "1.2.1"]
                            [jayq "0.1.0-SNAPSHOT"]
                            [crate "0.1.0-SNAPSHOT"]
-                           [fetch "0.1.0-SNAPSHOT"]]
+                           [fetch "0.1.0-SNAPSHOT"]
+                           [org.clojure/core.logic "0.6.6"]]
             :cljsbuild {:source-path "src" 
                         :compiler
                           {:output-dir "resources/public/cljs/"
