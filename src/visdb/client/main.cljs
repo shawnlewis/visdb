@@ -20,12 +20,44 @@
 (def $control-templates (jayq/$ :#control-templates))
 (def $record (jayq/$ :#record))
 
+(defn register-handlers-identity [el field-id] nil)
+
+(defn register-handlers-text [el field-id]
+    (jayq/on (jayq/$ el) :blur nil
+        (fn [e]
+             (let [val (-> e.target jayq/$ jayq/val)
+                   card-id (:current-card @*user-state*)
+                   key {:field-id field-id :card-id card-id}
+                   field-val (or (model/get-one @model/db "field-val" key)
+                                 key)]
+                  (model/! model/db model/insert "field-val"
+                       (assoc field-val :value val))))))
+
+(defn render-identity [el field-id] el)
+
+(defn render-text [el field-id]
+    (let [card-id (:current-card @*user-state*)
+          field-val (model/get-one @model/db "field-val"
+                               {:field-id field-id :card-id card-id})]
+        (-> el
+            jayq/$
+            (jayq/val (:value field-val)))
+        el))
+
 (def controls
     (let [controls
-          {:text-box {:template-html [:input.draggable {:type "text"}]}
-           :radio {:template-html [:input.draggable {:type "radio"}]}
-           :image {:template-html
-                   [:img.draggable {:src "/img/goog-icon.png"}]}}
+          {:text-box
+               {:template-html [:input.draggable {:type "text"}]
+                :register-handlers register-handlers-text
+                :render render-text}
+           :radio
+               {:template-html [:input.draggable {:type "radio"}]
+                :register-handlers register-handlers-identity
+                :render render-identity}
+           :image
+               {:template-html [:img.draggable {:src "/img/goog-icon.png"}]
+                :register-handlers register-handlers-identity
+                :render render-identity}}
           add-el (fn [controls key]
                     (assoc-in controls [key :template-el]
                         (crate/html (get-in controls [key :template-html]))))]
@@ -49,7 +81,7 @@
             (jayq/append record-list
                 (-> (jayq/$ "<li>")
                     (jayq/text (str "record " (:id card)))
-                    (jayq/data "record" (:id card)))))
+                    (jayq/data "id" (:id card)))))
 
         (jayq/empty kind-list)
         (doseq [kind (model/get-records db "kind")]
@@ -63,7 +95,9 @@
                     (model/get-records db "field-template"))]
             (let [position (:position ft)
                   control (controls (:control-type ft))
-                  new-el (crate/html (:template-html control))]
+                  render-fn (:render control)
+                  new-el (render-fn (crate/html (:template-html control)) (:id ft))]
+                ((:register-handlers control) new-el (:id ft))
                 (set-css (jayq/$ new-el)
                     {"position" "absolute"
                      "left" (str position.x "px")
@@ -80,8 +114,10 @@
         (render @model/db)))
 
 (defn add-record []
-    (model/! model/db model/insert "card"
-     {:kind-id (:current-kind @*user-state*)}))
+    (let [card-id (model/! model/db model/insert "card"
+                           {:kind-id (:current-kind @*user-state*)})]
+        (set-user-state! :current-card card-id)
+        (render @model/db)))
 
 (model/on-change model/db render)
 
@@ -99,25 +135,23 @@
     :click
     "li"
     (fn [event]
-        (do
-            (set-user-state! :current-kind
-                (-> event.target
-                    jayq/$
-                    (jayq/data "id")))
-            (render @model/db))))
+        (set-user-state! :current-kind
+            (-> event.target
+                jayq/$
+                (jayq/data "id")))
+        (render @model/db)))
 
-;(jayq/on
-;    (jayq/$ "#record-list-pane")
-;    :click
-;    "li"
-;    #(do
-;        (set-atom! cur-record-index
-;            (-> %
-;                .-target
-;                jayq/$
-;                (jayq/data "record")))
-;        (render)))
-;
+(jayq/on
+    (jayq/$ "#record-list-pane")
+    :click
+    "li"
+    (fn [event]
+        (set-user-state! :current-card
+            (-> event.target
+                jayq/$
+                (jayq/data "id")))
+        (render @model/db)))
+
 (defn make-drag-drop
     ([el]
       (goog.fx.DragDrop. el))
